@@ -50,7 +50,6 @@ def parse_args():
         "--cfg",
         dest="cfg_file",
         help="Path to the config file",
-        default="/home/ace14631pu/data/FutureHandPrediction/configs/Ego4D/I3D_8x8_R50.yaml",
         type=str,
     )
     parser.add_argument(
