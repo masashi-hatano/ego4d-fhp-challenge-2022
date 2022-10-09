@@ -8,14 +8,12 @@ import torch
 import torch.nn as nn
 from fvcore.nn.precise_bn import get_bn_modules, update_bn_stats
 
-import slowfast.models.losses as losses
 import slowfast.models.optimizer as optim
 import slowfast.utils.checkpoint as cu
 import slowfast.utils.distributed as du
 import slowfast.utils.logging as logging
-import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
-import slowfast.visualization.tensorboard_vis as tb
+import slowfast.utils.tensorboard_vis as tb
 from slowfast.datasets import loader
 from slowfast.models import build_model
 from slowfast.utils.meters import TrainMeter, ValMeter
