@@ -5,9 +5,9 @@ TRAIN:
   EVAL_PERIOD: 1
   CHECKPOINT_PERIOD: 1
   AUTO_RESUME: True
-  CHECKPOINT_FILE_PATH: "/home/ace14631pu/outputs/exp-hparams-wd=1e-3/checkpoints/checkpoint_epoch_00017.pyth" # "/home/ace14631pu/outputs/exp-two_stream-epoch=25-data_delete/checkpoints/checkpoint_epoch_00012.pyth"
+  CHECKPOINT_FILE_PATH: ~/outputs/exp-hparams-wd=1e-3/checkpoints/checkpoint_epoch_00017.pyth
   CHECKPOINT_TYPE: pytorch
-  MODE: "test"
+  MODE: train
 DATA:
   NUM_FRAMES: 8
   SAMPLING_RATE: 8
@@ -15,7 +15,7 @@ DATA:
   TRAIN_CROP_SIZE: 224
   TEST_CROP_SIZE: 224
   INPUT_CHANNEL_NUM: [3]
-  PATH_TO_DATA_DIR: /scratch/ace14631pu/ego4d_data/
+  PATH_TO_DATA_DIR: ~/ego4d_data/
   PATH_LABEL_SEPARATOR: ' '
   Resolution: 4
 RESNET:
@@ -34,11 +34,11 @@ BN:
   USE_PRECISE_STATS: True
   NUM_BATCHES_PRECISE: 200
 SOLVER:
-  BASE_LR: 0.0375 # 0.0375
+  BASE_LR: 0.0375
   LR_POLICY: cosine
   MAX_EPOCH: 20
   MOMENTUM: 0.9
-  WEIGHT_DECAY: 1e-3 # 1e-4
+  WEIGHT_DECAY: 1e-3
   WARMUP_EPOCHS: 5.0
   WARMUP_START_LR: 0.01
   OPTIMIZING_METHOD: sgd
@@ -47,7 +47,7 @@ MODEL:
   FLOW_ONLY: False
   NUM_CLASSES: 20
   ARCH: i3d
-  MODEL_NAME:  TwoStreamI3D # ResNet
+  MODEL_NAME: TwoStreamI3D
   LOSS_FUNC: cross_entropy
   DROPOUT_RATE: 0.5
   PRE_TRAINED: # i3d_r50
@@ -58,7 +58,7 @@ TEST:
   SAVE_RESULTS_PATH: output.pkl
   NUM_ENSEMBLE_VIEWS: 1
   NUM_SPATIAL_CROPS: 1
-  CHECKPOINT_FILE_PATH: "/home/ace14631pu/outputs/exp-two_stream-epoch=20-trainval/checkpoints/checkpoint_epoch_00017.pyth"
+  CHECKPOINT_FILE_PATH: "~/outputs/exp-two_stream-epoch=20-trainval/checkpoints/checkpoint_epoch_00017.pyth"
 DATA_LOADER:
   NUM_WORKERS: 4
   PIN_MEMORY: True
@@ -71,4 +71,4 @@ TENSORBOARD:
 NUM_GPUS: 1
 NUM_SHARDS: 1
 RNG_SEED: 0
-OUTPUT_DIR: /home/ace14631pu/outputs/exp-two_stream-epoch=20-trainval
+OUTPUT_DIR: ~/outputs/exp-two_stream-epoch=20-trainval
