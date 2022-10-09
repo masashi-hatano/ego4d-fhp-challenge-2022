@@ -14,8 +14,7 @@ from iopath.common.file_io import g_pathmgr
 import slowfast.utils.checkpoint as cu
 import slowfast.utils.distributed as du
 import slowfast.utils.logging as logging
-import slowfast.utils.misc as misc
-import slowfast.visualization.tensorboard_vis as tb
+import slowfast.utils.tensorboard_vis as tb
 from slowfast.datasets import loader
 from slowfast.models import build_model
 from slowfast.utils.meters import TestMeter
@@ -81,7 +80,6 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     model.eval()
     test_meter.iter_tic()
 
-    meta_list=[]
     labels_list=[]
     preds_list=[]
     video_idx_list=[]
@@ -99,19 +97,9 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             labels = labels.cuda()
             masks = masks.cuda()
             video_idx = video_idx.cuda()
-        # clip_idx=[]
-        # frm_idx=[]
-        # for i in meta:
-        #     # str =i.split('/')[-1].split('.')[0].split('_')
-        #     clip_id, frm_id = int(i[0]), int(i[1])
-        #     clip_idx.append(clip_id)
-        #     frm_idx.append(frm_id)
-        # clip_idx = torch.FloatTensor(clip_idx).cuda()
-        # frm_idx = torch.FloatTensor(frm_idx).cuda()
+        
         clip_idx = meta[-1][0]
         frm_idx = meta[-1][1]
-        # print(clip_idx, frm_idx)
-        # print(len(clip_idx), len(frm_idx))
 
         test_meter.data_toc()
         preds = model(inputs)
@@ -120,38 +108,19 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
         preds = scaling(cfg, preds, meta[2:4])
         
         if cfg.NUM_GPUS > 1:
-            # print(atten_map.size())
-            # preds, labels, video_idx = du.all_gather(
-            #    [preds, labels, video_idx]
-            # )
             preds, labels, video_idx, clip_idx, frm_idx = du.all_gather(
                [preds, labels, video_idx, clip_idx, frm_idx]
             )
-        # print(preds.size())
         labels_list.append(labels.cpu())
         preds_list.append(preds.cpu())
         video_idx_list.append(video_idx.cpu())
         clip_idx_list.append(clip_idx.cpu())
         frm_idx_list.append(frm_idx.cpu())
-        # print(clip_idx, frm_idx)
-        # print(len(labels_list))
-        # print(len(preds_list))
-        # print(len(video_idx_list))
-        # print(len(clip_idx_list))
-        # print(len(frm_idx_list))
-        # print('**********************************')
-            
-
-        # if cfg.NUM_GPUS:
-        #     preds = preds.cpu()
-        #     labels = labels.cpu()
-        #     video_idx = video_idx.cpu()
 
         test_meter.iter_toc()
         test_meter.log_iter_stats(cur_iter)
         test_meter.iter_tic()
-        # if cur_iter == 100:
-        #     break
+        
     if cfg.TEST.SAVE_RESULTS_PATH != "":
         save_path = os.path.join(cfg.OUTPUT_DIR, cfg.TEST.SAVE_RESULTS_PATH)
         
