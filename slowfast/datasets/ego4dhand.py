@@ -223,7 +223,6 @@ class Ego4dhand(torch.utils.data.Dataset):
 
         if self.mode in ["train", "val", "trainval"]:
             # -1 indicates random sampling.
-            temporal_sample_index = -1
             spatial_sample_index = -1
             min_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[0]
             max_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[1]
@@ -246,17 +245,6 @@ class Ego4dhand(torch.utils.data.Dataset):
                     )
                 )
         elif self.mode in ["test"]:
-            # temporal_sample_index = (
-            #     self._spatial_temporal_idx[index]
-            #     // self.cfg.TEST.NUM_SPATIAL_CROPS
-            # )
-            # spatial_sample_index is in [0, 1, 2]. Corresponding to left,
-            # center, or right if width is larger than height, and top, middle,
-            # or bottom if height is larger than width.
-            # spatial_sample_index = (
-            #     self._spatial_temporal_idx[index]
-            #     % self.cfg.TEST.NUM_SPATIAL_CROPS
-            # )
             min_scale, max_scale, crop_size = [self.cfg.DATA.TEST_CROP_SIZE] * 3
             # The testing is deterministic and no jitter should be performed.
             # min_scale, max_scale, and crop_size are expect to be the same.
@@ -265,54 +253,7 @@ class Ego4dhand(torch.utils.data.Dataset):
             raise NotImplementedError(
                 "Does not support {} mode".format(self.mode)
             )
-        # sampling_rate = utils.get_random_sampling_rate(
-        #     self.cfg.MULTIGRID.LONG_CYCLE_SAMPLING_RATE,
-        #     self.cfg.DATA.SAMPLING_RATE,
-        # )
-        # Try to decode and sample a clip from a video. If the video can not be
-        # decoded, repeatly find a random video replacement that can be decoded.
-        # for _ in range(self._num_retries):
-        #     video_container = None
-        #     try:
-        #         video_container = container.get_video_container(
-        #             self._path_to_ant_videos[index],
-        #             self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
-        #             self.cfg.DATA.DECODING_BACKEND,
-        #         )                
-        #     except Exception as e:
-        #         logger.info(
-        #             "Failed to load video from {} with error {}".format(
-        #                 self._path_to_ant_videos[index], e
-        #             )
-        #         )
-
-        #     # Select a random video if the current video was not able to access.
-        #     if video_container is None:
-        #         index = random.randint(0, len(self._path_to_ant_videos) - 1)
-        #         continue
-
-        #     # Decode video. Meta info is used to perform selective decoding.
-        #     frames = decoder.decode(
-        #         video_container,
-        #         sampling_rate,
-        #         self.cfg.DATA.NUM_FRAMES,
-        #         temporal_sample_index,
-        #         self.cfg.TEST.NUM_ENSEMBLE_VIEWS,
-        #         video_meta=self._video_meta[index],
-        #         target_fps=self.cfg.DATA.TARGET_FPS,
-        #         backend=self.cfg.DATA.DECODING_BACKEND,
-        #         max_spatial_scale=max_scale,
-        #     )
-
-     
-        #     assert (frames is not None),  "Failed to load from {}".format(self._path_to_ant_videos[index] )
-
-        #     # If decoding failed (wrong format, video is too short, and etc),
-        #     # select another video.
-        #     # if initial_frames is None:
-        #     #     index = random.randint(0, len(self._path_to_videos) - 1)
-        #     #     continue
-        
+       
         # create frame name list 
         num_frames = self.cfg.DATA.NUM_FRAMES
         frame_names = list(reversed([max(1, self._pre45_clip_frames[index]-15*i) for i in range(1,num_frames+1)]))
@@ -323,7 +264,7 @@ class Ego4dhand(torch.utils.data.Dataset):
         input_path_rgb = input_dir_rgb / Path(str(pre45_clip_frame).zfill(6))
         input_path_flow = input_dir_flow / Path("npy") / Path(str(pre45_clip_frame).zfill(6))
         img = cv2.imread(str(input_path_rgb)+".png")
-        h, w, c = img.shape
+        h, w, _ = img.shape
         frames = torch.zeros(num_frames, 224, 224, 3)
         flows = torch.zeros(num_frames, 224, 224, 2)
         for i, frame in enumerate(frame_names):
@@ -366,13 +307,6 @@ class Ego4dhand(torch.utils.data.Dataset):
             inputs = utils.pack_pathway_output(self.cfg, frames)
 
         return inputs, label, mask, index, meta
-        # else:
-        #     print(self._path_to_ant_videos[index])
-        #     raise RuntimeError(
-        #         "Failed to fetch video after {} retries.".format(
-        #             self._num_retries
-        #         )
-        #     )
 
     def __len__(self):
         """
