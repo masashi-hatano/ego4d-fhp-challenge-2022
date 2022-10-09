@@ -57,15 +57,20 @@ def build_model(cfg, gpu_id=None):
         )
     return model
 
+
 def _construct_model(cfg):
-    if cfg.MODEL.PRE_TRAINED=="i3d_r50":
-        model = torch.hub.load("facebookresearch/pytorchvideo", model=cfg.MODEL.PRE_TRAINED, pretrained=True)
+    if cfg.MODEL.PRE_TRAINED == "i3d_r50":
+        model = torch.hub.load(
+            "facebookresearch/pytorchvideo",
+            model=cfg.MODEL.PRE_TRAINED,
+            pretrained=True,
+        )
         model.blocks[6] = create_res_basic_head(
-            in_features=cfg.RESNET.WIDTH_PER_GROUP*32,
+            in_features=cfg.RESNET.WIDTH_PER_GROUP * 32,
             out_features=cfg.MODEL.NUM_CLASSES,
             pool=nn.AvgPool3d,
-            output_size=(1,1,1),
-            pool_kernel_size=(4,7,7),
+            output_size=(1, 1, 1),
+            pool_kernel_size=(4, 7, 7),
             dropout_rate=cfg.MODEL.DROPOUT_RATE,
             activation=None,
             output_with_global_average=True,

@@ -79,6 +79,7 @@ _POOL1 = {
     "x3d": [[1, 1, 1]],
 }
 
+
 @MODEL_REGISTRY.register()
 class ResNet(nn.Module):
     """
@@ -272,6 +273,7 @@ class ResNet(nn.Module):
         else:
             x = self.head(x)
         return x
+
 
 @MODEL_REGISTRY.register()
 class TwoStreamI3D(nn.Module):

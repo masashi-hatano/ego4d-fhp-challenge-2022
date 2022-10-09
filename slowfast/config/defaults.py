@@ -549,13 +549,13 @@ _C.MULTIGRID.EPOCH_FACTOR = 1.5
 # Enable short cycles.
 _C.MULTIGRID.SHORT_CYCLE = False
 # Short cycle additional spatial dimensions relative to the default crop size.
-_C.MULTIGRID.SHORT_CYCLE_FACTORS = [0.5, 0.5 ** 0.5]
+_C.MULTIGRID.SHORT_CYCLE_FACTORS = [0.5, 0.5**0.5]
 
 _C.MULTIGRID.LONG_CYCLE = False
 # (Temporal, Spatial) dimensions relative to the default shape.
 _C.MULTIGRID.LONG_CYCLE_FACTORS = [
-    (0.25, 0.5 ** 0.5),
-    (0.5, 0.5 ** 0.5),
+    (0.25, 0.5**0.5),
+    (0.5, 0.5**0.5),
     (0.5, 1),
     (1, 1),
 ]

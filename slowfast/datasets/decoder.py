@@ -341,9 +341,7 @@ def decode(
                 max_spatial_scale,
             )
         else:
-            raise NotImplementedError(
-                "Unknown decoding backend {}".format(backend)
-            )
+            raise NotImplementedError("Unknown decoding backend {}".format(backend))
     except Exception as e:
         print("Failed to decode by {} with exception: {}".format(backend, e))
         return None

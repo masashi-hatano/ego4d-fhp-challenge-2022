@@ -17,6 +17,7 @@ import slowfast.utils.misc as misc
 
 logger = logging.get_logger(__name__)
 
+
 class TestMeter(object):
     """
     Perform the multi-view ensemble for testing: each video with an unique index
@@ -103,7 +104,7 @@ class TestMeter(object):
                     self.video_labels[vid_id].type(torch.FloatTensor),
                     labels[ind].type(torch.FloatTensor),
                 )
-            
+
             self.video_labels[vid_id] = labels[ind]
             if self.ensemble_method == "sum":
                 self.video_preds[vid_id] += preds[ind]
@@ -113,9 +114,7 @@ class TestMeter(object):
                 )
             else:
                 raise NotImplementedError(
-                    "Ensemble Method {} is not supported".format(
-                        self.ensemble_method
-                    )
+                    "Ensemble Method {} is not supported".format(self.ensemble_method)
                 )
             self.clip_count[vid_id] += 1
 
@@ -182,15 +181,10 @@ class TestMeter(object):
             num_topks_correct = metrics.topks_correct(
                 self.video_preds, self.video_labels, ks
             )
-            topks = [
-                (x / self.video_preds.size(0)) * 100.0
-                for x in num_topks_correct
-            ]
+            topks = [(x / self.video_preds.size(0)) * 100.0 for x in num_topks_correct]
             assert len({len(ks), len(topks)}) == 1
             for k, topk in zip(ks, topks):
-                self.stats["top{}_acc".format(k)] = "{:.{prec}f}".format(
-                    topk, prec=2
-                )
+                self.stats["top{}_acc".format(k)] = "{:.{prec}f}".format(topk, prec=2)
         logging.log_json_stats(self.stats)
 
 
@@ -406,8 +400,6 @@ class ValMeter(object):
         self.loss = ScalarMeter(cfg.LOG_PERIOD)
         self.loss.reset()
         self.loss_total = 0.0
-
-
 
     def reset(self):
         """

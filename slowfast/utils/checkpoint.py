@@ -95,9 +95,7 @@ def is_checkpoint_epoch(cfg, cur_epoch, multigrid_schedule=None):
         prev_epoch = 0
         for s in multigrid_schedule:
             if cur_epoch < s[-1]:
-                period = max(
-                    (s[-1] - prev_epoch) // cfg.MULTIGRID.EVAL_FREQ + 1, 1
-                )
+                period = max((s[-1] - prev_epoch) // cfg.MULTIGRID.EVAL_FREQ + 1, 1)
                 return (s[-1] - 1 - cur_epoch) % period == 0
             prev_epoch = s[-1]
 
@@ -154,22 +152,16 @@ def inflate_weight(state_dict_2d, state_dict_3d):
         v3d = state_dict_3d[k]
         # Inflate the weight of 2D conv to 3D conv.
         if len(v2d.shape) == 4 and len(v3d.shape) == 5:
-            logger.info(
-                "Inflate {}: {} -> {}: {}".format(k, v2d.shape, k, v3d.shape)
-            )
+            logger.info("Inflate {}: {} -> {}: {}".format(k, v2d.shape, k, v3d.shape))
             # Dimension need to be match.
             assert v2d.shape[-2:] == v3d.shape[-2:]
             assert v2d.shape[:2] == v3d.shape[:2]
-            v3d = (
-                v2d.unsqueeze(2).repeat(1, 1, v3d.shape[2], 1, 1) / v3d.shape[2]
-            )
+            v3d = v2d.unsqueeze(2).repeat(1, 1, v3d.shape[2], 1, 1) / v3d.shape[2]
         elif v2d.shape == v3d.shape:
             v3d = v2d
         else:
             logger.info(
-                "Unexpected {}: {} -|> {}: {}".format(
-                    k, v2d.shape, k, v3d.shape
-                )
+                "Unexpected {}: {} -|> {}: {}".format(k, v2d.shape, k, v3d.shape)
             )
         state_dict_inflated[k] = v3d.clone()
     return state_dict_inflated
@@ -203,9 +195,9 @@ def load_checkpoint(
     Returns:
         (int): the number of training epoch of the checkpoint.
     """
-    assert g_pathmgr.exists(
+    assert g_pathmgr.exists(path_to_checkpoint), "Checkpoint '{}' not found".format(
         path_to_checkpoint
-    ), "Checkpoint '{}' not found".format(path_to_checkpoint)
+    )
     logger.info("Loading network weights from {}.".format(path_to_checkpoint))
 
     # Account for the DDP wrapper in the multi-gpu setting.
@@ -224,9 +216,7 @@ def load_checkpoint(
 
                 # expand shape dims if they differ (eg for converting linear to conv params)
                 if len(c2_blob_shape) < len(model_blob_shape):
-                    c2_blob_shape += (1,) * (
-                        len(model_blob_shape) - len(c2_blob_shape)
-                    )
+                    c2_blob_shape += (1,) * (len(model_blob_shape) - len(c2_blob_shape))
                     caffe2_checkpoint["blobs"][key] = np.reshape(
                         caffe2_checkpoint["blobs"][key], c2_blob_shape
                     )
@@ -269,9 +259,7 @@ def load_checkpoint(
                     prefix in key for prefix in ["momentum", "lr", "model_iter"]
                 ):
                     logger.warn(
-                        "!! {}: can not be converted, got {}".format(
-                            key, converted_key
-                        )
+                        "!! {}: can not be converted, got {}".format(key, converted_key)
                     )
         diff = set(ms.state_dict()) - set(state_dict)
         diff = {d for d in diff if "num_batches_tracked" not in d}
@@ -302,14 +290,10 @@ def load_checkpoint(
                     for k in checkpoint["model_state"]:
                         if item in k:
                             k_re = k.replace(item, "")
-                            model_state_dict_new[k_re] = checkpoint[
-                                "model_state"
-                            ][k]
+                            model_state_dict_new[k_re] = checkpoint["model_state"][k]
                             logger.info("renaming: {} -> {}".format(k, k_re))
                         else:
-                            model_state_dict_new[k] = checkpoint["model_state"][
-                                k
-                            ]
+                            model_state_dict_new[k] = checkpoint["model_state"][k]
                     checkpoint["model_state"] = model_state_dict_new
 
             pre_train_dict = checkpoint["model_state"]
@@ -322,9 +306,7 @@ def load_checkpoint(
             }
             # Weights that do not have match from the pre-trained model.
             not_load_layers = [
-                k
-                for k in model_dict.keys()
-                if k not in pre_train_dict_match.keys()
+                k for k in model_dict.keys() if k not in pre_train_dict_match.keys()
             ]
             # Log weights that are not loaded with the pre-trained weights.
             if not_load_layers:
@@ -435,13 +417,10 @@ def normal_to_sub_bn(checkpoint_sd, model_sd):
             ):
                 before_shape = checkpoint_sd[key].shape
                 checkpoint_sd[key] = torch.cat(
-                    [checkpoint_sd[key]]
-                    * (model_blob_shape[0] // c2_blob_shape[0])
+                    [checkpoint_sd[key]] * (model_blob_shape[0] // c2_blob_shape[0])
                 )
                 logger.info(
-                    "{} {} -> {}".format(
-                        key, before_shape, checkpoint_sd[key].shape
-                    )
+                    "{} {} -> {}".format(key, before_shape, checkpoint_sd[key].shape)
                 )
     return checkpoint_sd
 

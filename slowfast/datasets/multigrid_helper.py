@@ -4,6 +4,7 @@
 """Helper functions for multigrid training."""
 
 import numpy as np
+
 # from torch._six import int_classes as _int_classes
 int_classes = int
 from torch.utils.data.sampler import Sampler
@@ -42,10 +43,7 @@ class ShortCycleBatchSampler(Sampler):
         bs_factor = [
             int(
                 round(
-                    (
-                        float(cfg.DATA.TRAIN_CROP_SIZE)
-                        / (s * cfg.MULTIGRID.DEFAULT_S)
-                    )
+                    (float(cfg.DATA.TRAIN_CROP_SIZE) / (s * cfg.MULTIGRID.DEFAULT_S))
                     ** 2
                 )
             )

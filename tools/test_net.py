@@ -22,15 +22,16 @@ from utils.util import scaling
 
 logger = logging.get_logger(__name__)
 
+
 def to_onehot(indices, num_classes):
     """Convert a tensor of indices of any shape `(N, ...)` to a
     tensor of one-hot indicators of shape `(N, num_classes, ...)`.
     """
-    onehot = torch.zeros(indices.shape[0],
-                        num_classes,
-                        *indices.shape[1:],
-                        device=indices.device)
+    onehot = torch.zeros(
+        indices.shape[0], num_classes, *indices.shape[1:], device=indices.device
+    )
     return onehot.scatter_(1, indices.unsqueeze(1), 1)
+
 
 def mean_class_accuracy(cm):
     """Compute mean class accuracy based on the input confusion matrix"""
@@ -38,8 +39,9 @@ def mean_class_accuracy(cm):
     cm = cm.type(torch.float64)
     cls_cnt = cm.sum(dim=1) + 1e-15
     cls_hit = cm.diag()
-    cls_acc = (cls_hit/cls_cnt).mean().item()
+    cls_acc = (cls_hit / cls_cnt).mean().item()
     return cls_acc
+
 
 def confusion_matrix(pred, target):
     num_classes = pred.shape[1]
@@ -54,6 +56,7 @@ def confusion_matrix(pred, target):
 
         confusion_matrix = torch.matmul(target_ohe_t, pred_ohe)
     return confusion_matrix
+
 
 @torch.no_grad()
 def perform_test(test_loader, model, test_meter, cfg, writer=None):
@@ -80,11 +83,11 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     model.eval()
     test_meter.iter_tic()
 
-    labels_list=[]
-    preds_list=[]
-    video_idx_list=[]
-    clip_idx_list=[]
-    frm_idx_list=[]
+    labels_list = []
+    preds_list = []
+    video_idx_list = []
+    clip_idx_list = []
+    frm_idx_list = []
 
     for cur_iter, (inputs, labels, masks, video_idx, meta) in enumerate(test_loader):
         if cfg.NUM_GPUS:
@@ -97,7 +100,7 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             labels = labels.cuda()
             masks = masks.cuda()
             video_idx = video_idx.cuda()
-        
+
         clip_idx = meta[-1][0]
         frm_idx = meta[-1][1]
 
@@ -106,10 +109,10 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
 
         # adjust the scale
         preds = scaling(cfg, preds, meta[2:4])
-        
+
         if cfg.NUM_GPUS > 1:
             preds, labels, video_idx, clip_idx, frm_idx = du.all_gather(
-               [preds, labels, video_idx, clip_idx, frm_idx]
+                [preds, labels, video_idx, clip_idx, frm_idx]
             )
         labels_list.append(labels.cpu())
         preds_list.append(preds.cpu())
@@ -120,19 +123,17 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
         test_meter.iter_toc()
         test_meter.log_iter_stats(cur_iter)
         test_meter.iter_tic()
-        
+
     if cfg.TEST.SAVE_RESULTS_PATH != "":
         save_path = os.path.join(cfg.OUTPUT_DIR, cfg.TEST.SAVE_RESULTS_PATH)
-        
+
         if du.is_root_proc():
             print(save_path)
             with g_pathmgr.open(save_path, "wb") as f:
                 # pickle.dump([preds_list,labels_list, videoid_list], f)
                 pickle.dump([preds_list, labels_list, clip_idx_list, frm_idx_list], f)
 
-            logger.info(
-                "Successfully saved prediction results to {}".format(save_path)
-            )
+            logger.info("Successfully saved prediction results to {}".format(save_path))
 
     test_meter.reset()
 
@@ -170,7 +171,7 @@ def test(cfg):
         % (cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS)
         == 0
     )
-    
+
     # Create meters for multi-view testing.
     test_meter = TestMeter(
         len(test_loader.dataset)
@@ -183,9 +184,7 @@ def test(cfg):
     )
 
     # Set up writer for logging to Tensorboard format.
-    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(
-        cfg.NUM_GPUS * cfg.NUM_SHARDS
-    ):
+    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(cfg.NUM_GPUS * cfg.NUM_SHARDS):
         writer = tb.TensorboardWriter(cfg)
     else:
         writer = None

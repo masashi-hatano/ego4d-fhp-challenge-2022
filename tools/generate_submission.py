@@ -11,54 +11,78 @@ import numpy as np
 import argparse
 import json
 
+
 class NumpyEncoder(json.JSONEncoder):
-    """ Special json encoder for numpy types """
+    """Special json encoder for numpy types"""
+
     def default(self, obj):
-        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
-                            np.int16, np.int32, np.int64, np.uint8,
-                            np.uint16, np.uint32, np.uint64)):
+        if isinstance(
+            obj,
+            (
+                np.int_,
+                np.intc,
+                np.intp,
+                np.int8,
+                np.int16,
+                np.int32,
+                np.int64,
+                np.uint8,
+                np.uint16,
+                np.uint32,
+                np.uint64,
+            ),
+        ):
             return int(obj)
-        elif isinstance(obj, (np.float_, np.float16, np.float32,
-                              np.float64)):
+        elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
             return float(obj)
         elif isinstance(obj, (np.ndarray,)):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 
+
 def main(output_file, num_clips=30):
-  with open(output_file, 'rb') as f:
-    preds_list, _, clip_idx, frm_idx = pickle.load(f)
+    with open(output_file, "rb") as f:
+        preds_list, _, clip_idx, frm_idx = pickle.load(f)
 
-  pred_dict={}
-  for i in range(len(preds_list)):
-    # i-th batch
-    preds = preds_list[i].numpy()
-    clips = clip_idx[i].cpu().numpy()
-    frms = frm_idx[i].cpu().numpy()
+    pred_dict = {}
+    for i in range(len(preds_list)):
+        # i-th batch
+        preds = preds_list[i].numpy()
+        clips = clip_idx[i].cpu().numpy()
+        frms = frm_idx[i].cpu().numpy()
 
-    for j in range(len(preds)):
-      pred = preds[j]
-      clip = clips[j]
-      frm = frms[j]
-      video_id = str(int(clip)) + '_' + str(int(frm))
+        for j in range(len(preds)):
+            pred = preds[j]
+            clip = clips[j]
+            frm = frms[j]
+            video_id = str(int(clip)) + "_" + str(int(frm))
 
-      if video_id in pred_dict:
-        pred_dict[video_id] += pred
-      else:
-        pred_dict[video_id] = pred
+            if video_id in pred_dict:
+                pred_dict[video_id] += pred
+            else:
+                pred_dict[video_id] = pred
 
-  for k,v in pred_dict.items():
-    pred_dict[k] = v*num_clips
+    for k, v in pred_dict.items():
+        pred_dict[k] = v * num_clips
 
-  dumped = json.dumps(pred_dict, cls=NumpyEncoder)
-  with open('submission.json', 'a') as f:
-      f.write(dumped + '\n') 
+    dumped = json.dumps(pred_dict, cls=NumpyEncoder)
+    with open("submission.json", "a") as f:
+        f.write(dumped + "\n")
+
 
 if __name__ == "__main__":
-    description = 'Evaluation script for egocentric hand movements prediction.'
+    description = "Evaluation script for egocentric hand movements prediction."
     p = argparse.ArgumentParser(description=description)
-    p.add_argument('--output_file', type=str,
-                   default='~/outputs/exp-two_stream-epoch=20-trainval/output.pkl',
-                   help='output pickle file for predicted future hand positions')
-    p.add_argument('--num_clips', type=int, help='number of clips for spatial and temporal resampling during testing',default=30)
+    p.add_argument(
+        "--output_file",
+        type=str,
+        default="~/outputs/exp-two_stream-epoch=20-trainval/output.pkl",
+        help="output pickle file for predicted future hand positions",
+    )
+    p.add_argument(
+        "--num_clips",
+        type=int,
+        help="number of clips for spatial and temporal resampling during testing",
+        default=30,
+    )
     main(**vars(p.parse_args()))

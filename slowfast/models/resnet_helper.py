@@ -506,9 +506,7 @@ class ResBlock(nn.Module):
     def _drop_connect(self, x, drop_ratio):
         """Apply dropconnect to x"""
         keep_ratio = 1.0 - drop_ratio
-        mask = torch.empty(
-            [x.shape[0], 1, 1, 1, 1], dtype=x.dtype, device=x.device
-        )
+        mask = torch.empty([x.shape[0], 1, 1, 1, 1], dtype=x.dtype, device=x.device)
         mask.bernoulli_(keep_ratio)
         x.div_(keep_ratio)
         x.mul_(mask)
@@ -697,9 +695,7 @@ class ResStage(nn.Module):
                         instantiation=instantiation,
                         norm_module=norm_module,
                     )
-                    self.add_module(
-                        "pathway{}_nonlocal{}".format(pathway, i), nln
-                    )
+                    self.add_module("pathway{}_nonlocal{}".format(pathway, i), nln)
 
     def forward(self, inputs):
         output = []
@@ -709,9 +705,7 @@ class ResStage(nn.Module):
                 m = getattr(self, "pathway{}_res{}".format(pathway, i))
                 x = m(x)
                 if hasattr(self, "pathway{}_nonlocal{}".format(pathway, i)):
-                    nln = getattr(
-                        self, "pathway{}_nonlocal{}".format(pathway, i)
-                    )
+                    nln = getattr(self, "pathway{}_nonlocal{}".format(pathway, i))
                     b, c, t, h, w = x.shape
                     if self.nonlocal_group[pathway] > 1:
                         # Fold temporal dimension into batch dimension.

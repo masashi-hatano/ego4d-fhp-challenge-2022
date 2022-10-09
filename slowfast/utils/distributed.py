@@ -24,9 +24,7 @@ def all_gather(tensors):
     output_tensor = []
     world_size = dist.get_world_size()
     for tensor in tensors:
-        tensor_placeholder = [
-            torch.ones_like(tensor) for _ in range(world_size)
-        ]
+        tensor_placeholder = [torch.ones_like(tensor) for _ in range(world_size)]
         dist.all_gather(tensor_placeholder, tensor, async_op=False)
         gather_list.append(tensor_placeholder)
     for gathered_tensor in gather_list:
@@ -178,11 +176,11 @@ def _serialize_to_tensor(data, group):
     device = torch.device("cpu" if backend == "gloo" else "cuda")
 
     buffer = pickle.dumps(data)
-    if len(buffer) > 1024 ** 3:
+    if len(buffer) > 1024**3:
         logger = logging.getLogger(__name__)
         logger.warning(
             "Rank {} trying to all-gather {:.2f} GB of data on device {}".format(
-                get_rank(), len(buffer) / (1024 ** 3), device
+                get_rank(), len(buffer) / (1024**3), device
             )
         )
     storage = torch.ByteStorage.from_buffer(buffer)
@@ -204,9 +202,7 @@ def _pad_to_largest_tensor(tensor, group):
     assert (
         world_size >= 1
     ), "comm.gather/all_gather must be called from ranks within the given group!"
-    local_size = torch.tensor(
-        [tensor.numel()], dtype=torch.int64, device=tensor.device
-    )
+    local_size = torch.tensor([tensor.numel()], dtype=torch.int64, device=tensor.device)
     size_list = [
         torch.zeros([1], dtype=torch.int64, device=tensor.device)
         for _ in range(world_size)

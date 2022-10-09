@@ -5,13 +5,14 @@
 
 import torch.nn as nn
 import torch
+
 _LOSSES = {
     "cross_entropy": nn.CrossEntropyLoss,
     "bce": nn.BCELoss,
     "bce_logit": nn.BCEWithLogitsLoss,
 }
 
-    
+
 def get_loss_func(loss_name):
     """
     Retrieve the loss given the loss name.

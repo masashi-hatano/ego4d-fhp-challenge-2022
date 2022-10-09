@@ -21,6 +21,7 @@ from utils.util import scaling
 
 logger = logging.get_logger(__name__)
 
+
 def train_epoch(
     train_loader, model, optimizer, train_meter, cur_epoch, cfg, writer=None
 ):
@@ -43,7 +44,7 @@ def train_epoch(
     train_meter.iter_tic()
     data_size = len(train_loader)
 
-    for cur_iter, (inputs, labels, masks,_, meta) in enumerate(train_loader):
+    for cur_iter, (inputs, labels, masks, _, meta) in enumerate(train_loader):
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
             if isinstance(inputs, (list,)):
@@ -70,9 +71,9 @@ def train_epoch(
         preds = scaling(cfg, preds, meta[2:4])
 
         # remove all zero values
-        preds = preds[preds!=0]
-        labels = labels[labels!=0]
-        loss_fun = nn.SmoothL1Loss(reduction="mean",beta=5.0)
+        preds = preds[preds != 0]
+        labels = labels[labels != 0]
+        loss_fun = nn.SmoothL1Loss(reduction="mean", beta=5.0)
 
         # Compute the loss.
         loss = loss_fun(preds, labels)
@@ -86,14 +87,12 @@ def train_epoch(
         optimizer.step()
 
         if cfg.NUM_GPUS > 1:
-            loss = du.all_reduce(
-                [loss]
-            )
+            loss = du.all_reduce([loss])
         else:
             loss = [loss]
         # Copy the stats from GPU to CPU (sync point).
 
-        loss = loss[0].item() 
+        loss = loss[0].item()
         # Update and log stats.
 
         train_meter.update_stats(
@@ -123,6 +122,7 @@ def train_epoch(
     train_meter.reset()
     # print(lamda)
 
+
 @torch.no_grad()
 def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     """
@@ -143,14 +143,13 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     val_meter.iter_tic()
     data_size = len(val_loader)
 
-    for cur_iter, (inputs, labels, masks,_, meta) in enumerate(val_loader):
+    for cur_iter, (inputs, labels, masks, _, meta) in enumerate(val_loader):
         if cfg.NUM_GPUS:
             if isinstance(inputs, (list,)):
                 for i in range(len(inputs)):
                     inputs[i] = inputs[i].cuda(non_blocking=True)
             else:
                 inputs = inputs.cuda(non_blocking=True)
-
 
             labels = labels.cuda()
             masks = masks.cuda()
@@ -164,20 +163,18 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         preds = scaling(cfg, preds, meta[2:4])
 
         # remove all zero values
-        preds = preds[preds!=0]
-        labels = labels[labels!=0]
+        preds = preds[preds != 0]
+        labels = labels[labels != 0]
         val_meter.data_toc()
-        loss_fun = nn.SmoothL1Loss(reduction="mean",beta=5.0)
+        loss_fun = nn.SmoothL1Loss(reduction="mean", beta=5.0)
         loss = loss_fun(preds, labels)
         if cfg.NUM_GPUS > 1:
-            loss = du.all_reduce(
-                [loss]
-            )
+            loss = du.all_reduce([loss])
         else:
             loss = [loss]
 
         # Copy the stats from GPU to CPU (sync point).
-        loss = loss[0].item() 
+        loss = loss[0].item()
 
         val_meter.iter_toc()
         # # Update and log stats.
@@ -187,7 +184,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
             * max(
                 cfg.NUM_GPUS, 1
             ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
-        )   
+        )
 
         val_meter.update_predictions(preds, labels)
         val_meter.log_iter_stats(cur_epoch, cur_iter)
@@ -198,24 +195,19 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     # write to tensorboard format if available.
     if writer is not None:
         writer.add_scalars(
-                {
-                    "Validation/loss": loss,
-                },
-                global_step=data_size * cur_epoch + cur_iter,
-            )
+            {
+                "Validation/loss": loss,
+            },
+            global_step=data_size * cur_epoch + cur_iter,
+        )
         all_preds = [pred.clone().detach() for pred in val_meter.all_preds]
-        all_labels = [
-            label.clone().detach() for label in val_meter.all_labels
-        ]
+        all_labels = [label.clone().detach() for label in val_meter.all_labels]
         if cfg.NUM_GPUS:
             all_preds = [pred.cpu() for pred in all_preds]
             all_labels = [label.cpu() for label in all_labels]
-        writer.plot_eval(
-            preds=all_preds, labels=all_labels, global_step=cur_epoch
-        )
+        writer.plot_eval(preds=all_preds, labels=all_labels, global_step=cur_epoch)
 
     val_meter.reset()
-
 
 
 def calculate_and_update_precise_bn(loader, model, cfg, num_iters=200, use_gpu=True):
@@ -229,7 +221,7 @@ def calculate_and_update_precise_bn(loader, model, cfg, num_iters=200, use_gpu=T
     """
 
     def _gen_loader():
-        for inputs, labels, masks,_, meta in loader:
+        for inputs, labels, masks, _, meta in loader:
             if use_gpu:
                 if isinstance(inputs, (list,)):
                     for i in range(len(inputs)):
@@ -237,12 +229,12 @@ def calculate_and_update_precise_bn(loader, model, cfg, num_iters=200, use_gpu=T
                 else:
                     inputs = inputs.cuda(non_blocking=True)
 
-
                 labels = labels.cuda()
             if cfg.MODEL.PRE_TRAINED:
                 inputs = inputs[0]
 
             yield inputs
+
     # Update the bn stats.
     update_bn_stats(model, _gen_loader(), num_iters)
 
@@ -275,9 +267,7 @@ def build_trainer(cfg):
     # Create the video train and val loaders.
     train_loader = loader.construct_loader(cfg, "train")
     val_loader = loader.construct_loader(cfg, "val")
-    precise_bn_loader = loader.construct_loader(
-        cfg, "train", is_precise_bn=True
-    )
+    precise_bn_loader = loader.construct_loader(cfg, "train", is_precise_bn=True)
     # Create meters.
     train_meter = TrainMeter(len(train_loader), cfg)
     val_meter = ValMeter(len(val_loader), cfg)
@@ -319,7 +309,7 @@ def train(cfg):
     # Print config.
     logger.info("Train with config:")
     logger.info(pprint.pformat(cfg))
-    
+
     # Build the video model and print model statistics.
     model = build_model(cfg)
 
@@ -333,17 +323,13 @@ def train(cfg):
     assert cfg.TRAIN.MODE in ["train", "trainval"]
     train_loader = loader.construct_loader(cfg, cfg.TRAIN.MODE)
     val_loader = loader.construct_loader(cfg, "val")
-    precise_bn_loader = loader.construct_loader(
-        cfg, cfg.TRAIN.MODE, is_precise_bn=True
-    )
+    precise_bn_loader = loader.construct_loader(cfg, cfg.TRAIN.MODE, is_precise_bn=True)
 
     train_meter = TrainMeter(len(train_loader), cfg)
     val_meter = ValMeter(len(val_loader), cfg)
 
     # set up writer for logging to Tensorboard format.
-    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(
-        cfg.NUM_GPUS * cfg.NUM_SHARDS
-    ):
+    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(cfg.NUM_GPUS * cfg.NUM_SHARDS):
         writer = tb.TensorboardWriter(cfg)
     else:
         writer = None
@@ -372,17 +358,13 @@ def train(cfg):
                 else:
                     last_checkpoint = cfg.TRAIN.CHECKPOINT_FILE_PATH
                 logger.info("Load from {}".format(last_checkpoint))
-                cu.load_checkpoint(
-                    last_checkpoint, model, cfg.NUM_GPUS > 1, optimizer
-                )
+                cu.load_checkpoint(last_checkpoint, model, cfg.NUM_GPUS > 1, optimizer)
 
         # Shuffle the dataset.
         loader.shuffle_dataset(train_loader, cur_epoch)
         # Train for one epoch.
 
-        train_epoch(
-            train_loader, model, optimizer, train_meter, cur_epoch, cfg, writer
-        )
+        train_epoch(train_loader, model, optimizer, train_meter, cur_epoch, cfg, writer)
 
         # Compute precise BN stats.
         if cfg.BN.USE_PRECISE_STATS and len(get_bn_modules(model)) > 0:
@@ -394,7 +376,6 @@ def train(cfg):
                 cfg.NUM_GPUS > 0,
             )
         _ = misc.aggregate_sub_bn_stats(model)
-
 
         # Save a checkpoint.
         if cu.is_checkpoint_epoch(

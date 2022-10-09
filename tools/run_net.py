@@ -5,13 +5,14 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
 
 from test_net import test
 from train_net import train
+
 
 def main():
     """
