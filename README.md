@@ -64,7 +64,7 @@ Path_To_Data_Dir
 
 ## Testing: 
 ```shell
- python tools/run_net.py --cfg /path/to//configs/Ego4D/I3D_8x8_R50.yaml 
+ python tools/run_net.py --cfg /path/to/configs/Ego4D/I3D_8x8_R50.yaml 
 ```
 
 ## Evaluation and Visualization: 
