@@ -1,4 +1,4 @@
-# Ego4D Hand Movement Prediction: Two-stream I3D
+# Ego4D Future Hand Prediction Challenge: Two-stream I3D
 
 ## Installation:
 ```shell
