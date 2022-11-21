@@ -71,3 +71,5 @@ Path_To_Data_Dir
 ```shell
  python tools/evaluation.py --cfg /path/to//configs/Ego4D/I3D_8x8_R50.yaml
 ```
+## validation report
+[Ego4d_fhp_challenge_validation_report.pdf](https://github.com/masashi-hatano/ego4d-fhp-challenge-2022/files/10055435/Ego4d_Future_Hand_Prediction.1.pdf)
