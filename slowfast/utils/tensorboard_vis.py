@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
 
 import slowfast.utils.logging as logging
-import slowfast.visualization.utils as vis_utils
+import slowfast.utils as vis_utils
 from slowfast.utils.misc import get_class_names
 
 logger = logging.get_logger(__name__)
